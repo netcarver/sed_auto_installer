@@ -10,11 +10,11 @@ if( !empty( $revision ) )
 	$parts = explode( ' ' , trim( $revision , '$' ) );
 	$revision = $parts[1];
 	if( !empty( $revision ) )
-		$revision = '.' . $revision;
+		$revision = ' (r' . $revision . ')';
 	}
 
 $plugin['name'] = 'sed_auto_inst';
-$plugin['version'] = '0.1' . $revision;
+$plugin['version'] = '0.2' . $revision;
 $plugin['author'] = 'Stephen Dickinson';
 $plugin['author_uri'] = 'http://txp-plugins.netcarving.com';
 $plugin['description'] = 'Plugin auto-installer';
@@ -86,99 +86,101 @@ Inspiration for this plugin came from the need to quickly be able to setup (rest
 
 if( @txpinterface === 'admin' )
 	{
-	global $txpcfg , $event , $step, $prefs;
+	add_privs('sed_plugin_auto_install', '1');
+	register_callback('sed_plugin_auto_install', 'admin' , 'sed_auto_inst' );
+	}
+
+function sed_plugin_auto_install( $event , $step )
+	{
+	global $txpcfg , $prefs;
+
+	require_privs('sed_plugin_auto_install');
+
+	include_once $txpcfg['txpath'].'/include/txp_plugin.php';
 
 	$debug = false;
-	if( $debug )
-		echo br , "Loading: Auto Install Plugin.";
+	if( $debug ) echo br , "Loading: Auto Install Plugin.";
 
-	if( $event === 'admin' and $step === 'sed_auto_inst' )
+	#
+	#	Build a list of all files in the special plugins dir...
+	#
+	$files = array();
+	$path = $prefs['file_base_path'].DS.'sed_autoinst'.DS.'plugins';
+	if( $debug ) echo br , "Auto Install Plugins... Accessing dir($path) ...";
+	$dir = @dir( $path );
+	if( $dir === false )
 		{
-		include_once $txpcfg['txpath'].'/include/txp_plugin.php';
-
-		#
-		#	Build a list of all files in the special plugins dir...
-		#
-		$files = array();
-		$path = $prefs['file_base_path'].DS.'sed_autoinst'.DS.'plugins';
-		if( $debug )
-			echo br , "Auto Install Plugins... Accessing dir($path) ...";
-		$dir = @dir( $path );
-		if( $dir === false )
+		if( $debug ) echo " failed!";
+		return;
+		}
+	while( $file = $dir->read() )
+		{
+		if($file!=='.' && $file!=='..')
 			{
-			if( $debug )
-				echo " failed!";
-			return;
-			}
-		while( $file = $dir->read() )
-			{
-			if($file!=='.' && $file!=='..')
+			if( $debug ) echo br , "... found ($file)";
+			$fileaddr = $path.DS.$file;
+			if( !is_dir($fileaddr) )
 				{
-				if( $debug )
-					echo br , "... found ($file)";
-				$fileaddr = $path.DS.$file;
-				if( !is_dir($fileaddr) )
-					{
-					$files[] = $file;
-					if( $debug )
-						echo " : accepting as plugin.";
-					}
+				$files[] = $file;
+				if( $debug ) echo " : accepting as plugin.";
 				}
 			}
-		$dir->close();
+		}
+	$dir->close();
+
+	#
+	#	Exit if there is nothing to do...
+	#
+	if( empty( $files ) )
+		{
+		if( $debug ) echo " no plugins found: exiting.";
+		return;
+		}
+
+	#
+	#	Process each file...
+	#
+	foreach( $files as $file )
+		{
+		if( $debug ) echo br , "Processing $file : ";
+		#
+		#	Load the file into the $_POST['plugin64'] entry and try installing it...
+		#
+		$plugin = join( '', file($path.DS.$file) );
+		$_POST['plugin64'] = $plugin;
+		if( $debug ) echo "installing,";
+		include_once $txpcfg['txpath'].'/lib/txplib_head.php';
+		plugin_install();
 
 		#
-		#	Exit if there is nothing to do...
+		#	Drop the file extension to leave only the name...
 		#
-		if( empty( $files ) )
-			{
-			if( $debug )
-				echo " no plugins found: exiting.";
-			return;
-			}
+		$bits = explode( '.' , $file );
+		array_pop( $bits );
+		$file = join( '.' , $bits );
 
 		#
-		#	Process each file...
+		#  Try enabling it now (guesses at plugin name from file name)...
+	 	#
+
+		$plugin_name = strtr( $file , array('-'=>'_') );
+		$_POST['name'] = $plugin_name;
+		$_POST['status'] = '0';
+		if( $debug ) echo " attempting to activate $plugin_name.";
+		switch_status();
+		}
+
+	if( !$debug )
+		{
 		#
-		foreach( $files as $file )
-			{
-			if( $debug )
-				echo br , "Processing $file : ";
-			#
-			#	Load the file into the $_POST['plugin64'] entry and try installing it...
-			#
-			$plugin = join( '', file($path.DS.$file) );
-			$_POST['plugin64'] = $plugin;
-			if( $debug )
-				echo "installing,";
-			include_once $txpcfg['txpath'].'/lib/txplib_head.php';
-			plugin_install();
-
-			#
-			#	Drop the file extension to leave only the name...
-			#
-			$bits = explode( '.' , $file );
-			array_pop( $bits );
-			$file = join( '.' , $bits );
-
-			#
-			#	Try enabling it now...
-			#
-			$_POST['name'] = strtr( $file , array('-'=>'_') );
-			$_POST['status'] = '0';
-			if( $debug )
-				echo " activating it.";
-			switch_status();
-			}
-
-		if( !$debug )
-			{
-			while( @ob_end_clean() );
-			header('Location: '.hu.'textpattern/index.php?event=plugin');
-			header('Connection: close');
-			header('Content-Length: 0');
-			exit(0);
-			}
+		#	Remove ourself from the plugin installation now (nice idea Ruud!)...
+		#
+		safe_delete('txp_plugin', "name = 'sed_auto_inst'");
+		while( @ob_end_clean() );
+		header('Location: '.hu.'textpattern/index.php?event=plugin');
+		header('Connection: close');
+		header('Content-Length: 0');
+		exit(0);
 		}
 	}
 
