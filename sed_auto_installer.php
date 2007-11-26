@@ -61,7 +61,7 @@ h2. Table Of Contents.
 
 h2(#intro). Introduction
 
-This plugin allows the system to automatically load and enable a set of plugins from the files/autoinst/plugins directory of your current installation.
+This plugin allows the system to automatically load and enable a set of plugins from the files/sed_autoinst/plugins directory of your current installation.
 
  <span style="float:right"><a href="#top" title="Jump to the top">top</a></span>
 
