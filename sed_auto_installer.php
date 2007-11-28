@@ -2,7 +2,7 @@
 
 //$plugin['url'] = '$HeadURL: http://porteo.us/svn/txp_plugins/trunk/l10n.php $';
 //$plugin['date'] = '$LastChangedDate: 2006-12-28 16:11:37 +0800 (Thu, 28 Dec 2006) $';
-$plugin['revision'] = '$LastChangedRevision: 5 $';
+$plugin['revision'] = '$LastChangedRevision$';
 
 $revision = @$plugin['revision'];
 if( !empty( $revision ) )
