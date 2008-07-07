@@ -134,7 +134,7 @@ h1(#top). SED Auto Installer Help.
 
 <br />
 
-|_. Copyright 2007 Stephen Dickinson. |
+|_. Copyright 2007 Netcarver. |
 
 <br />
 
@@ -160,8 +160,7 @@ Inspiration for this plugin came from the need to quickly be able to setup (rest
 
 <br />
 
--- _Stephen Dickinson_
-2007.
+-- _Netcarver_ 2007.
 
 </div>
 # --- END PLUGIN HELP ---
