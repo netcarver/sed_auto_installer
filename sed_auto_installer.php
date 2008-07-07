@@ -1,20 +1,7 @@
 <?php
 
-//$plugin['url'] = '$HeadURL: http://porteo.us/svn/txp_plugins/trunk/l10n.php $';
-//$plugin['date'] = '$LastChangedDate: 2006-12-28 16:11:37 +0800 (Thu, 28 Dec 2006) $';
-$plugin['revision'] = '$LastChangedRevision$';
-
-$revision = @$plugin['revision'];
-if( !empty( $revision ) )
-	{
-	$parts = explode( ' ' , trim( $revision , '$' ) );
-	$revision = $parts[1];
-	if( !empty( $revision ) )
-		$revision = ' (r' . $revision . ')';
-	}
-
 $plugin['name'] = 'sed_auto_inst';
-$plugin['version'] = '0.2' . $revision;
+$plugin['version'] = '0.2';
 $plugin['author'] = 'Netcarver';
 $plugin['author_uri'] = 'http://txp-plugins.netcarving.com';
 $plugin['description'] = 'Plugin auto-installer';
